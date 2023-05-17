@@ -130,11 +130,25 @@
     padding: 20px;
     border: 1px solid #cccccc;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-direction: column;
+}
+.prompt-message .top-div{
+    display: flex;
+    width: 100%;
+    height: 80%;
+}
+.prompt-message .bottom-div{
+    display: flex;
+    width: 100%;
+    height: 20%;
+    flex-direction: row;
+    justify-content: space-evenly;
     align-items: center;
 }
-.prompt-message button{
+.prompt-message .bottom-div button{
     display: flex;
-    bottom: 0;
-    width: 50px;
-    height: 50px;
+    width: 30%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
 }

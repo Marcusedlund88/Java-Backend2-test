@@ -8,6 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -22,6 +24,19 @@ public class CustomerController {
 
     public CustomerController(CustomerRepo customerRepo){
         this.customerRepo = customerRepo;
+    }
+
+    @RequestMapping("/customers/header")
+    @ResponseBody
+    public List<String> getHeaders(){
+        List<String> headers = new ArrayList<>();
+
+        Field[] fields = Customer.class.getDeclaredFields();
+        for (Field field : fields) {
+            headers.add(field.getName());
+        }
+        log.info(headers.toString());
+        return headers;
     }
 
     @RequestMapping("/customers")
@@ -46,12 +61,12 @@ public class CustomerController {
         return "customers";
     }
     @RequestMapping("customers/{id}/delete")
-    public String deleteById(@PathVariable long id){
+    @ResponseBody
+    public List<Customer> deleteById(@PathVariable long id){
         Customer customer = customerRepo.findById(id).get();
         customerRepo.deleteById(id);
-        List<Customer> customers = customerRepo.findAll();
 
-        return "delete.html";
+        return customerRepo.findAll();
     }
 
     @RequestMapping("customers/{id}/update")

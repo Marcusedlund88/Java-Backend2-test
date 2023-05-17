@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,18 @@ public class OrderController {
         this.orderRepo = orderRepo;
         this.customerRepo = customerRepo;
         this.itemRepo = itemRepo;
+    }
+    @RequestMapping("/orders/header")
+    @ResponseBody
+    public List<String> getHeaders(){
+        List<String> headers = new ArrayList<>();
+
+        Field[] fields = Order.class.getDeclaredFields();
+        for (Field field : fields) {
+            headers.add(field.getName());
+        }
+        log.info(headers.toString());
+        return headers;
     }
     @RequestMapping("/orders")
     @ResponseBody
@@ -51,10 +64,11 @@ public class OrderController {
         return "orders.html";
     }
     @RequestMapping("orders/{id}/delete")
-    public String deleteById(@PathVariable long id){
+    @ResponseBody
+    public List<Order> deleteById(@PathVariable long id){
         Order order = orderRepo.findById(id).get();
         orderRepo.deleteById(id);
-        return "deleteOrder.html";
+        return orderRepo.findAll();
     }
 
     @PostMapping(value = "/orders/buy/")

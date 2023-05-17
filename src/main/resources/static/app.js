@@ -4,8 +4,14 @@ window.addEventListener('load', removeTable);
 function removeTable(){
     let hero = document.querySelector('.hero');
     let table = hero.querySelector('table');
+    let form = hero.querySelector('form');
     if(table){
+        console.log('removed')
         table.remove();
+    }
+    if(form){
+        console.log('form')
+        form.remove();
     }
 }
 function makeNav(element, list){
@@ -128,8 +134,6 @@ async function makeTableFromJson(tableParent,endpoint){
     let table = document.createElement('table');
     let tHead = document.createElement('thead');
     let tr = document.createElement('tr');
-
-
     let tBody = document.createElement('tbody');
 
     const list = [];
@@ -153,13 +157,15 @@ async function makeTableFromJson(tableParent,endpoint){
         button1.textContent = 'UPDATE';
         button1.addEventListener('click',()=>{
             console.log('UPDATE USER ' + tBodyRow.cells[0].textContent)
+            makePromptWindow(()=>manipulateElement(id,endpoint, ()=> updateElement(id,endpoint)));
         });
 
+        let id = tBodyRow.cells[0].textContent;
         let button2 = document.createElement('button');
         button2.textContent = 'REMOVE';
         button2.addEventListener('click',()=>{
-            console.log('REMOVE USER ' + tBodyRow.cells[0].textContent)
-            removeElement(1);
+            console.log('REMOVE USER ' + id)
+            makePromptWindow(()=>manipulateElement(id,endpoint, ()=> removeElement(id, endpoint)));
         });
 
         tBodyRow.appendChild(button1);
@@ -178,6 +184,20 @@ async function fetchJson(endpoint){
     const response = await fetch(endpoint);
     const data = await response.json();
     return data;
+}
+async function deleteItemFromDb(endpoint, itemId) {
+    const response = await fetch(`${endpoint}/${itemId}/delete`, {
+        method: 'DELETE'
+    });
+
+    if (response.ok) {
+        console.log('deleted')
+        return true;
+    } else {
+        // Error occurred while deleting item
+        const errorData = await response.json();
+        throw new Error(errorData.message);
+    }
 }
 async function makeListFromJson(ul,endpoint){
     let data = await fetchJson(endpoint);
@@ -222,29 +242,98 @@ function setHref(aTag, endpoint) {
         aTag.setAttribute('onclick', 'event.preventDefault(); makeTableFromJson(document.querySelector(".hero"), "' + endpoint + '")');
     }
 }
-function removeElement(id){
+function makePromptWindow(event){
     let overlay = document.createElement('div');
     let promptMessage = document.createElement('div');
-    let yesBtn = document.createElement('button');
-    let noBtn = document.createElement('button');
+    let topDiv = document.createElement('div');
+    let bottomDiv = document.createElement('div');
 
     overlay.className = 'overlay';
     promptMessage.className = 'prompt-message';
-    promptMessage.textContent = 'Remove element?';
+    topDiv.className = 'top-div';
+    bottomDiv.className = 'bottom-div';
+    promptMessage.appendChild(topDiv);
+    promptMessage.appendChild(bottomDiv);
+
+    overlay.appendChild(promptMessage);
+    document.querySelector('.hero').appendChild(overlay);
+
+    event();
+}
+function manipulateElement(id, endpoint, event){
+
+    let promptMessage = document.querySelector('.prompt-message .bottom-div');
+
+    let yesBtn = document.createElement('button');
+    let noBtn = document.createElement('button');
+
     yesBtn.textContent = 'Yes';
     noBtn.textContent = 'No'
 
     noBtn.addEventListener('click', ()=>{
         document.querySelector('.overlay').remove();
-    })
+    });
+
+    yesBtn.addEventListener('click', () => {
+        document.querySelector('.overlay').remove();
+        event(id,endpoint);
+    });
 
     promptMessage.appendChild(noBtn);
     promptMessage.appendChild(yesBtn);
 
-    overlay.appendChild(promptMessage);
-    document.querySelector('.hero').appendChild(overlay);
 }
+function updateElement(id, endpoint){
+    removeTable();
+    fetchJson(endpoint + '/header').then((data)=> {
+        console.log(data)
+        makeForm(data)
+    });
 
+}
+function removeElement(id, endpoint){
+    deleteItemFromDb(endpoint, id)
+        .then(() => {
+            makeTableFromJson(document.querySelector('.hero'), endpoint);
+            document.querySelector('.overlay').remove();
+        })
+        .catch(error => {
+            console.error('Error deleting item:', error);
+        });
+};
+function makeForm(list){
+
+    const form = document.createElement('form');
+    form.setAttribute('id', 'myForm');
+    form.setAttribute('method', 'POST');
+    form.setAttribute('action', '/submit');
+
+    list.forEach((element, index)=>{
+        if(index != 0) {
+            const label = document.createElement('label');
+            label.textContent = element.toString().toUpperCase();
+            const input = document.createElement('input');
+            input.setAttribute('type', 'text');
+            input.setAttribute('name', 'name');
+            form.appendChild(label);
+            form.appendChild(input);
+            form.appendChild(document.createElement('br'));
+        }
+    });
+
+
+// Create submit button
+    const submitBtn = document.createElement('button');
+    submitBtn.setAttribute('type', 'submit');
+    submitBtn.textContent = 'Submit';
+
+// Add the submit button to the form
+    form.appendChild(submitBtn);
+
+// Append the form to the document body
+    document.querySelector('.hero').appendChild(form);
+
+}
 var myList = [ "HOME","CUSTOMERS", "ITEMS", "ORDERS" ];
 
 makeNav(document.querySelector('.nav-bar'), myList);

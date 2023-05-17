@@ -1,5 +1,6 @@
 package com.example.Rest.Controller;
 
+import com.example.Rest.POJO.Customer;
 import com.example.Rest.POJO.Item;
 import com.example.Rest.Repository.ItemRepo;
 import org.slf4j.Logger;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -17,6 +20,19 @@ public class ItemController {
 
     public ItemController(ItemRepo itemRepo) {
         this.itemRepo = itemRepo;
+    }
+
+    @RequestMapping("/items/header")
+    @ResponseBody
+    public List<String> getHeaders(){
+        List<String> headers = new ArrayList<>();
+
+        Field[] fields = Item.class.getDeclaredFields();
+        for (Field field : fields) {
+            headers.add(field.getName());
+        }
+        log.info(headers.toString());
+        return headers;
     }
 
     @RequestMapping("/items")
@@ -63,10 +79,11 @@ public class ItemController {
     }
 
     @RequestMapping("items/{id}/delete")
-    public String deleteById(@PathVariable long id){
+    @ResponseBody
+    public List<Item> deleteById(@PathVariable long id){
         Item item = itemRepo.findById(id).get();
         itemRepo.deleteById(id);
-        return "deleteItem.html";
+        return itemRepo.findAll();
     }
 
     @RequestMapping("items/add")
