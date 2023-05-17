@@ -159,6 +159,7 @@ async function makeTableFromJson(tableParent,endpoint){
         button2.textContent = 'REMOVE';
         button2.addEventListener('click',()=>{
             console.log('REMOVE USER ' + tBodyRow.cells[0].textContent)
+            removeElement(1);
         });
 
         tBodyRow.appendChild(button1);
@@ -220,6 +221,28 @@ function setHref(aTag, endpoint) {
         aTag.setAttribute('href', '#');
         aTag.setAttribute('onclick', 'event.preventDefault(); makeTableFromJson(document.querySelector(".hero"), "' + endpoint + '")');
     }
+}
+function removeElement(id){
+    let overlay = document.createElement('div');
+    let promptMessage = document.createElement('div');
+    let yesBtn = document.createElement('button');
+    let noBtn = document.createElement('button');
+
+    overlay.className = 'overlay';
+    promptMessage.className = 'prompt-message';
+    promptMessage.textContent = 'Remove element?';
+    yesBtn.textContent = 'Yes';
+    noBtn.textContent = 'No'
+
+    noBtn.addEventListener('click', ()=>{
+        document.querySelector('.overlay').remove();
+    })
+
+    promptMessage.appendChild(noBtn);
+    promptMessage.appendChild(yesBtn);
+
+    overlay.appendChild(promptMessage);
+    document.querySelector('.hero').appendChild(overlay);
 }
 
 var myList = [ "HOME","CUSTOMERS", "ITEMS", "ORDERS" ];
